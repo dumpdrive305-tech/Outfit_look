@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Photo Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #faf7f2;
+  --surface: #f4f0e8;
+  --border: #e0d9cc;
+  --accent: #b5854a;
+  --accent2: #8c5e2a;
+  --text: #2a2418;
+  --muted: #8a7f6e;
+  --radius: 4px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+}
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 50;
+}
+.header-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+}
+.site-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem; font-weight: 400;
+  letter-spacing: 0.04em; color: var(--text);
+  text-decoration: none;
+}
+.site-title span { color: var(--accent); font-style: italic; }
+.header-nav a {
+  font-size: 0.78rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  text-decoration: none; margin-left: 28px; transition: color 0.2s;
+}
+.header-nav a:hover { color: var(--accent); }
+.hero {
+  border-bottom: 1px solid var(--border);
+  padding: 64px 40px 48px; text-align: center;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 300; line-height: 1.15; margin-bottom: 16px;
+}
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero p { color: var(--muted); font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.feed { max-width: 780px; margin: 0 auto; padding: 60px 24px 100px; }
+#loading {
+  text-align: center; padding: 80px 0;
+  color: var(--muted); font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+#no-posts { display: none; text-align: center; padding: 80px 0; }
+#no-posts p { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; color: var(--muted); }
+
+.post-card { margin-bottom: 72px; animation: fadeUp 0.5s ease both; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+.post-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.post-date { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.post-tag {
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--accent2); padding: 3px 10px; border-radius: 2px;
+}
+.post-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 400; line-height: 1.2; margin-bottom: 14px; }
+.post-body { font-size: 0.95rem; line-height: 1.75; color: #4a4030; margin-bottom: 20px; white-space: pre-line; }
+
+/* IMAGE GRIDS */
+.image-grid { margin-bottom: 22px; border-radius: var(--radius); overflow: hidden; }
+.image-grid.count-1 .img-wrap { width: 100%; aspect-ratio: 4/3; }
+.image-grid.count-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.image-grid.count-2 .img-wrap { aspect-ratio: 1; }
+.image-grid.count-3 { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; height: 400px; }
+.image-grid.count-3 .img-wrap:first-child { grid-row: 1 / 3; }
+.image-grid.count-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; }
+.image-grid.count-4 .img-wrap { aspect-ratio: 4/3; }
+.image-grid.count-many { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 3px; height: 380px; }
+.image-grid.count-many .img-wrap:first-child { grid-column: 1 / 3; }
+
+.img-wrap { overflow: hidden; cursor: pointer; position: relative; background: var(--surface); }
+.img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.45s ease; }
+.img-wrap:hover img { transform: scale(1.04); }
+.more-badge {
+  position: absolute; inset: 0;
+  background: rgba(42,36,24,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem; font-weight: 300; color: #fff;
+}
+
+.post-links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.post-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 0.8rem; letter-spacing: 0.06em;
+  color: var(--accent2); text-decoration: none;
+  border: 1px solid var(--border); padding: 7px 14px;
+  border-radius: 2px; background: var(--surface); transition: all 0.2s;
+}
+.post-link:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.post-divider { border: none; border-top: 1px solid var(--border); margin-top: 40px; }
+
+/* LIGHTBOX */
+.lightbox { display: none; position: fixed; inset: 0; z-index: 999; background: rgba(15,12,8,0.93); align-items: center; justify-content: center; }
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 92vw; max-height: 90vh; object-fit: contain; border-radius: 2px; }
+.lb-close { position: absolute; top: 24px; right: 28px; color: #fff; font-size: 2.2rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; background: none; border: none; }
+.lb-close:hover { opacity: 1; }
+.lb-prev, .lb-next {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; font-size: 1.6rem; width: 48px; height: 48px;
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+}
+.lb-prev:hover, .lb-next:hover { background: rgba(255,255,255,0.28); }
+.lb-prev { left: 20px; } .lb-next { right: 20px; }
+.lb-counter { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 0.8rem; letter-spacing: 0.1em; }
+
+footer { border-top: 1px solid var(--border); text-align: center; padding: 32px; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="site-title" href="index.html">Photo<span>Journal</span></a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </div>
+</header>
+<div class="hero">
+  <h1>Moments, <em>captured</em></h1>
+  <p>A personal photo journal</p>
+</div>
+<main class="feed">
+  <div id="loading">Loading posts…</div>
+  <div id="no-posts"><p>No posts yet.</p></div>
+  <div id="posts-container"></div>
+</main>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lb-close">&times;</button>
+  <button class="lb-prev" id="lb-prev">&#8249;</button>
+  <img id="lb-img" src="" alt=""/>
+  <button class="lb-next" id="lb-next">&#8250;</button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+<footer>&copy; <span id="year"></span> Photo Journal &mdash; <a href="admin.html">Admin</a></footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+let lbImages = [], lbIndex = 0;
+function openLightbox(images, idx) {
+  lbImages = images; lbIndex = idx;
+  updateLb();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function updateLb() {
+  document.getElementById('lb-img').src = lbImages[lbIndex];
+  document.getElementById('lb-counter').textContent = `${lbIndex+1} / ${lbImages.length}`;
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+document.getElementById('lb-close').onclick = closeLightbox;
+document.getElementById('lightbox').onclick = function(e) { if (e.target === this) closeLightbox(); };
+document.getElementById('lb-prev').onclick = function() { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; updateLb(); };
+document.getElementById('lb-next').onclick = function() { lbIndex = (lbIndex + 1) % lbImages.length; updateLb(); };
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') document.getElementById('lb-prev').click();
+  if (e.key === 'ArrowRight') document.getElementById('lb-next').click();
+});
+function formatDate(s) {
+  return new Date(s).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+function buildGrid(images) {
+  const n = images.length;
+  const MAX = n >= 5 ? 5 : n;
+  let cls = ['','count-1','count-2','count-3','count-4','count-many'][Math.min(n,5)];
+  let html = `<div class="image-grid ${cls}">`;
+  for (let i = 0; i < MAX; i++) {
+    const isLast = i === MAX-1 && n > MAX;
+    html += `<div class="img-wrap" data-idx="${i}"><img src="${images[i]}" alt="" loading="lazy"/>
+      ${isLast ? `<div class="more-badge">+${n-MAX+1}</div>` : ''}</div>`;
+  }
+  return html + '</div>';
+}
+function renderPost(post, delay) {
+  const images = post.images || [];
+  const links = post.links || [];
+  const div = document.createElement('div');
+  div.className = 'post-card';
+  div.style.animationDelay = `${delay * 0.09}s`;
+  div.innerHTML = `
+    <div class="post-meta">
+      <span class="post-date">${formatDate(post.date)}</span>
+      ${post.tag ? `<span class="post-tag">${post.tag}</span>` : ''}
+    </div>
+    ${post.title ? `<h2 class="post-title">${post.title}</h2>` : ''}
+    ${images.length ? buildGrid(images) : ''}
+    ${post.body ? `<div class="post-body">${post.body}</div>` : ''}
+    ${links.length ? `<div class="post-links">${links.map(l=>`<a class="post-link" href="${l.url}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>${l.label||l.url}</a>`).join('')}</div>` : ''}
+    <hr class="post-divider"/>`;
+  div.querySelectorAll('.img-wrap').forEach(w => {
+    w.addEventListener('click', () => openLightbox(images, Math.min(parseInt(w.dataset.idx), images.length-1)));
+  });
+  return div;
+}
+async function loadPosts() {
+  try {
+    const res = await fetch(`posts.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const posts = (data.posts||[]).slice().reverse();
+    document.getElementById('loading').style.display = 'none';
+    if (!posts.length) { document.getElementById('no-posts').style.display='block'; return; }
+    const c = document.getElementById('posts-container');
+    posts.forEach((p,i) => c.appendChild(renderPost(p,i)));
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Could not load posts.json — make sure it exists in your repo root.';
+  }
+}
+loadPosts();
+</script>
+</body>
+</html>
